@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loraine's Tasks</title>
+  <title>Task</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
@@ -22,23 +22,36 @@
       color: #f3f4f6;
     }
     .input:focus {
-      border-color: #fbbf24;
+      border-color: #10b981;
       outline: none;
     }
     .tab-active {
-      border-bottom: 3px solid #fbbf24;
+      border-bottom: 3px solid #10b981;
       color: white;
       background-color: #27272a;
     }
 
-    /* Status Dropdown Styling */
+    /* Status Dropdown + Badge Styling */
     select.status-select {
       font-weight: 500;
       border-radius: 12px;
+      padding: 6px 16px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .status-not-started { background-color: #3f2a2a; color: #f87171; }
-    .status-in-progress { background-color: #3f3a2a; color: #fbbf24; }
-    .status-completed  { background-color: #2a3f35; color: #34d399; }
+    .status-not-started { 
+      background-color: #3f2a2a; 
+      color: #f87171; 
+    }
+    .status-in-progress { 
+      background-color: #3f3a2a; 
+      color: #fbbf24; 
+    }
+    .status-completed  { 
+      background-color: #2a3f35; 
+      color: #34d399; 
+    }
   </style>
 </head>
 <body class="min-h-screen p-6">
@@ -48,10 +61,10 @@
     <!-- Header -->
     <div class="flex items-end justify-between mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-yellow-400 tracking-tight">Loraine's Tasks</h1>
+        <h1 class="text-3xl font-bold text-green-400 tracking-tight">Task Management</h1>
         <p class="text-zinc-400 mt-1">Stay organized • <span id="task-count" class="font-medium">0 tasks</span></p>
       </div>
-      <div class="w-10 h-10 bg-yellow-400 text-zinc-950 rounded-2xl flex items-center justify-center font-semibold text-xl shadow-inner">
+      <div class="w-10 h-10 bg-green-400 text-zinc-950 rounded-2xl flex items-center justify-center font-semibold text-xl shadow-inner">
         LC
       </div>
     </div>
@@ -102,7 +115,7 @@
       <!-- New Task Sidebar -->
       <div class="lg:col-span-4 card rounded-3xl p-6 sticky top-6">
         <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
-          <i class="fa-solid fa-plus text-yellow-400"></i>
+          <i class="fa-solid fa-plus text-green-400"></i>
           New Task
         </h3>
         
@@ -122,7 +135,7 @@
           </div>
 
           <button onclick="addTask()" 
-                  class="w-full mt-4 bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-semibold py-4 rounded-2xl transition-all text-base">
+                  class="w-full mt-4 bg-green-400 hover:bg-green-300 text-zinc-950 font-semibold py-4 rounded-2xl transition-all text-base">
             Create Task
           </button>
         </div>
@@ -167,7 +180,7 @@
           Cancel
         </button>
         <button onclick="saveEdit()" 
-                class="flex-1 py-4 bg-yellow-400 text-zinc-950 font-semibold rounded-2xl hover:bg-yellow-300">
+                class="flex-1 py-4 bg-green-400 text-zinc-950 font-semibold rounded-2xl hover:bg-green-300">
           Save Changes
         </button>
       </div>
@@ -185,6 +198,13 @@
     function loadFromLocalStorage() {
       const saved = localStorage.getItem('loraine_tasks');
       if (saved) tasks = JSON.parse(saved);
+    }
+
+    function getStatusClass(status) {
+      if (status === 'Not Started') return 'status-not-started';
+      if (status === 'In Progress') return 'status-in-progress';
+      if (status === 'Completed') return 'status-completed';
+      return '';
     }
 
     function renderTasks() {
@@ -211,7 +231,7 @@
           </td>
           <td class="px-6 py-5">
             <select onchange="updateStatus('${task.id}', this.value)" 
-                    class="status-select w-full px-4 py-2 text-sm cursor-pointer focus:outline-none focus:border-yellow-400">
+                    class="status-select ${getStatusClass(task.status)}">
               <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''} class="status-not-started">Not Started</option>
               <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''} class="status-in-progress">In Progress</option>
               <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''} class="status-completed">Completed</option>
