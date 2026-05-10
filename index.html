@@ -20,6 +20,11 @@
         .task-table tr:hover {
             background-color: #18181b;
         }
+
+        select option {
+            background-color: #27272a;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200 min-h-screen">
@@ -39,7 +44,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Left Side: My Tasks (Table) -->
+            <!-- Left Side: My Tasks -->
             <div class="lg:col-span-7">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-3xl font-semibold">My Tasks</h2>
@@ -62,7 +67,7 @@
                                 <th class="text-left py-5 px-8 font-medium text-zinc-400 text-sm w-4/12">TASK</th>
                                 <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm w-6/12">DESCRIPTION</th>
                                 <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm">STATUS</th>
-                                <th class="w-16"></th>
+                                <th class="w-20"></th>
                             </tr>
                         </thead>
                         <tbody id="tasks-body" class="divide-y divide-zinc-800 text-sm">
@@ -71,14 +76,13 @@
                     </table>
                 </div>
 
-                <!-- Empty State -->
                 <div id="empty-state" class="hidden text-center py-20 bg-zinc-900 rounded-3xl border border-zinc-800">
                     <i class="fa-solid fa-clipboard-list text-5xl text-zinc-700 mb-4"></i>
                     <p class="text-zinc-400">No tasks yet. Create one on the right.</p>
                 </div>
             </div>
 
-            <!-- Right Side: New Task Form -->
+            <!-- Right Side: New Task -->
             <div class="lg:col-span-5">
                 <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 sticky top-8">
                     <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
@@ -89,8 +93,7 @@
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
-                            <input id="title-input" 
-                                   type="text" 
+                            <input id="title-input" type="text" 
                                    class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-2xl px-5 py-4 outline-none text-lg"
                                    placeholder="What needs to be done?">
                         </div>
@@ -118,10 +121,43 @@
                 <i class="fa-solid fa-lock"></i>
                 All tasks are stored in your browser's local storage only
             </p>
-            <p onclick="clearAllData()" 
-               class="cursor-pointer hover:text-red-400 transition-colors mt-4 text-xs">
+            <p onclick="clearAllData()" class="cursor-pointer hover:text-red-400 transition-colors mt-4 text-xs">
                 Clear all data
             </p>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="bg-zinc-900 rounded-3xl w-full max-w-lg mx-4 p-8">
+            <h3 class="text-2xl font-semibold mb-6">Edit Task</h3>
+            
+            <input id="edit-id" type="hidden">
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
+                    <input id="edit-title" type="text" 
+                           class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-2xl px-5 py-4 outline-none">
+                </div>
+                
+                <div>
+                    <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Description</label>
+                    <textarea id="edit-desc" rows="4"
+                              class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-3xl px-5 py-4 outline-none resize-none"></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeEditModal()" 
+                        class="flex-1 py-4 border border-zinc-700 hover:bg-zinc-800 rounded-2xl transition-colors">
+                    Cancel
+                </button>
+                <button onclick="saveEdit()" 
+                        class="flex-1 py-4 bg-yellow-400 text-zinc-950 font-semibold rounded-2xl hover:bg-yellow-300 transition-colors">
+                    Save Changes
+                </button>
+            </div>
         </div>
     </div>
 
@@ -138,7 +174,7 @@
             if (saved) tasks = JSON.parse(saved);
         }
 
-        function getStatusBadge(status) {
+        function getStatusHTML(status) {
             if (status === 'Completed') return `<span class="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">Completed</span>`;
             if (status === 'In Progress') return `<span class="px-4 py-1.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full">In Progress</span>`;
             return `<span class="px-4 py-1.5 bg-zinc-700 text-zinc-400 text-xs font-medium rounded-full">Not Started</span>`;
@@ -149,11 +185,8 @@
             tbody.innerHTML = '';
 
             let filtered = tasks;
-            if (currentFilter === 'inprogress') {
-                filtered = tasks.filter(t => t.status === 'In Progress');
-            } else if (currentFilter === 'completed') {
-                filtered = tasks.filter(t => t.status === 'Completed');
-            }
+            if (currentFilter === 'inprogress') filtered = tasks.filter(t => t.status === 'In Progress');
+            if (currentFilter === 'completed') filtered = tasks.filter(t => t.status === 'Completed');
 
             if (filtered.length === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
@@ -172,16 +205,24 @@
                     <td class="py-6 px-6">
                         <select onchange="updateStatus('${task.id}', this.value)" 
                                 class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-2 text-sm cursor-pointer focus:outline-none focus:border-yellow-400">
-                            <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
-                            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''} style="color:#a1a1aa">Not Started</option>
+                            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''} style="color:#fbbf24">In Progress</option>
+                            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''} style="color:#34d399">Completed</option>
                         </select>
                     </td>
                     <td class="py-6 px-4">
-                        <button onclick="deleteTask('${task.id}')" 
-                                class="text-red-400 hover:text-red-500 p-2 transition-all">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <!-- Edit Button -->
+                            <button onclick="editTask('${task.id}')" 
+                                    class="text-blue-400 hover:text-blue-500 p-2 transition-all">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <!-- Delete Button -->
+                            <button onclick="deleteTask('${task.id}')" 
+                                    class="text-red-400 hover:text-red-500 p-2 transition-all">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -205,7 +246,6 @@
             saveToLocalStorage();
             renderTasks();
 
-            // Clear form
             document.getElementById('title-input').value = '';
             document.getElementById('desc-input').value = '';
         }
@@ -217,6 +257,39 @@
                 saveToLocalStorage();
                 renderTasks();
             }
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('edit-id').value = task.id;
+            document.getElementById('edit-title').value = task.title;
+            document.getElementById('edit-desc').value = task.description || '';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function saveEdit() {
+            const id = document.getElementById('edit-id').value;
+            const title = document.getElementById('edit-title').value.trim();
+            const desc = document.getElementById('edit-desc').value.trim();
+
+            if (!title) return;
+
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.title = title;
+                task.description = desc;
+                saveToLocalStorage();
+                renderTasks();
+            }
+
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
         }
 
         function deleteTask(id) {
@@ -254,7 +327,6 @@
             loadFromLocalStorage();
             renderTasks();
 
-            // Enter key support
             document.getElementById('title-input').addEventListener('keypress', e => {
                 if (e.key === 'Enter') addTask();
             });
