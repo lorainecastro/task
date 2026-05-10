@@ -59,10 +59,10 @@
                     <table class="task-table w-full">
                         <thead>
                             <tr class="border-b border-zinc-800">
-                                <th class="text-left py-5 px-8 font-medium text-zinc-400 text-sm">TASK</th>
+                                <th class="text-left py-5 px-8 font-medium text-zinc-400 text-sm w-4/12">TASK</th>
+                                <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm w-6/12">DESCRIPTION</th>
                                 <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm">STATUS</th>
-                                <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm">CREATED</th>
-                                <th class="w-12"></th>
+                                <th class="w-16"></th>
                             </tr>
                         </thead>
                         <tbody id="tasks-body" class="divide-y divide-zinc-800 text-sm">
@@ -139,9 +139,9 @@
         }
 
         function getStatusBadge(status) {
-            if (status === 'Completed') return `<span class="px-4 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">Completed</span>`;
-            if (status === 'In Progress') return `<span class="px-4 py-1 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full">In Progress</span>`;
-            return `<span class="px-4 py-1 bg-zinc-700 text-zinc-400 text-xs font-medium rounded-full">Not Started</span>`;
+            if (status === 'Completed') return `<span class="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full">Completed</span>`;
+            if (status === 'In Progress') return `<span class="px-4 py-1.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full">In Progress</span>`;
+            return `<span class="px-4 py-1.5 bg-zinc-700 text-zinc-400 text-xs font-medium rounded-full">Not Started</span>`;
         }
 
         function renderTasks() {
@@ -165,11 +165,11 @@
                 const row = document.createElement('tr');
                 row.className = "group";
                 row.innerHTML = `
-                    <td class="py-5 px-8">
-                        <div class="font-medium">${task.title}</div>
-                        ${task.description ? `<div class="text-zinc-400 text-sm mt-1 line-clamp-2">${task.description}</div>` : ''}
+                    <td class="py-6 px-8 font-medium">${task.title}</td>
+                    <td class="py-6 px-6 text-zinc-400">
+                        ${task.description ? task.description : '<span class="text-zinc-500 italic">No description</span>'}
                     </td>
-                    <td class="px-6">
+                    <td class="py-6 px-6">
                         <select onchange="updateStatus('${task.id}', this.value)" 
                                 class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-2 text-sm cursor-pointer focus:outline-none focus:border-yellow-400">
                             <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
@@ -177,12 +177,9 @@
                             <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''}>Completed</option>
                         </select>
                     </td>
-                    <td class="px-6 text-zinc-400 text-sm">
-                        ${new Date(task.createdAt).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}
-                    </td>
-                    <td class="px-4">
+                    <td class="py-6 px-4">
                         <button onclick="deleteTask('${task.id}')" 
-                                class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 p-2 transition-all">
+                                class="text-red-400 hover:text-red-500 p-2 transition-all">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
@@ -234,7 +231,11 @@
             currentFilter = filter;
             
             document.querySelectorAll('button[id^="filter-"]').forEach(btn => {
-                btn.classList.toggle('bg-zinc-800', btn.id === `filter-${filter === 'all' ? 'all' : filter === 'inprogress' ? 'progress' : 'completed'}`);
+                if (btn.id === `filter-${filter === 'all' ? 'all' : filter === 'inprogress' ? 'progress' : 'completed'}`) {
+                    btn.classList.add('bg-zinc-800');
+                } else {
+                    btn.classList.remove('bg-zinc-800');
+                }
             });
             
             renderTasks();
