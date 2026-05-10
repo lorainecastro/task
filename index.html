@@ -1,335 +1,336 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loraine's Tasks</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-        
-        body {
-            font-family: 'Inter', system_ui, sans-serif;
-        }
-        
-        .task-table tr {
-            transition: all 0.2s ease;
-        }
-        
-        .task-table tr:hover {
-            background-color: #18181b;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loraine's Tasks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0a0b0f;
+      color: #f3f4f6;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .card {
+      background-color: #18181b;
+      border: 1px solid #3f3f46;
+    }
+    .input {
+      background-color: #27272a;
+      border: 1px solid #3f3f46;
+      color: #f3f4f6;
+    }
+    .input:focus {
+      border-color: #fbbf24;
+      outline: none;
+    }
+    .tab-active {
+      border-bottom: 3px solid #fbbf24;
+      color: white;
+      background-color: #27272a;
+    }
 
-        /* Colored dropdown */
-        select.status-select {
-            font-weight: 500;
-        }
-        select.status-select.not-started { color: #d3534a; }
-        select.status-select.in-progress { color: #fbbf24; }
-        select.status-select.completed { color: #34d399; }
-    </style>
+    /* Status Dropdown Styling */
+    select.status-select {
+      font-weight: 500;
+      border-radius: 12px;
+    }
+    .status-not-started { background-color: #3f2a2a; color: #f87171; }
+    .status-in-progress { background-color: #3f3a2a; color: #fbbf24; }
+    .status-completed  { background-color: #2a3f35; color: #34d399; }
+  </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200 min-h-screen">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-10">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-            <div>
-                <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-white">Task Management</h1>
-                <p class="text-zinc-400 mt-1 text-base">Stay organized • <span id="task-count" class="font-medium">0 tasks</span></p>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-yellow-400 text-zinc-950 rounded-2xl flex items-center justify-center font-semibold text-xl shadow-inner">
-                    LC
-                </div>
-            </div>
-        </div>
+<body class="min-h-screen p-6">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            
-            <!-- Left Side: My Tasks -->
-            <div class="lg:col-span-7">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <h2 class="text-2xl md:text-3xl font-semibold">My Tasks</h2>
-                    
-                    <!-- Filter Buttons -->
-                    <div class="flex flex-wrap gap-2 bg-zinc-900 p-1.5 rounded-3xl">
-                        <button onclick="filterTasks('all')" id="filter-all" 
-                                class="px-5 py-2.5 text-sm font-medium rounded-3xl transition-all active-filter">All</button>
-                        <button onclick="filterTasks('notstarted')" id="filter-notstarted"
-                                class="px-5 py-2.5 text-sm font-medium rounded-3xl transition-all">Not Started</button>
-                        <button onclick="filterTasks('inprogress')" id="filter-progress"
-                                class="px-5 py-2.5 text-sm font-medium rounded-3xl transition-all">In Progress</button>
-                        <button onclick="filterTasks('completed')" id="filter-completed"
-                                class="px-5 py-2.5 text-sm font-medium rounded-3xl transition-all">Completed</button>
-                    </div>
-                </div>
-
-                <!-- Tasks Table -->
-                <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800">
-                    <table class="task-table w-full min-w-full">
-                        <thead>
-                            <tr class="border-b border-zinc-800">
-                                <th class="text-left py-5 px-6 md:px-8 font-medium text-zinc-400 text-sm w-3/12">TASK</th>
-                                <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm w-7/12">DESCRIPTION</th>
-                                <th class="text-left py-5 px-6 font-medium text-zinc-400 text-sm">STATUS</th>
-                                <th class="w-20"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="tasks-body" class="divide-y divide-zinc-800 text-sm">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="empty-state" class="hidden text-center py-20 bg-zinc-900 rounded-3xl border border-zinc-800">
-                    <i class="fa-solid fa-clipboard-list text-5xl text-zinc-700 mb-4"></i>
-                    <p class="text-zinc-400">No tasks yet. Create one on the right.</p>
-                </div>
-            </div>
-
-            <!-- Right Side: New Task -->
-            <div class="lg:col-span-5">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-8 sticky top-6">
-                    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                        <i class="fa-solid fa-plus text-yellow-400"></i>
-                        New Task
-                    </h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
-                            <input id="title-input" type="text" 
-                                   class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-2xl px-5 py-4 outline-none text-base"
-                                   placeholder="What needs to be done?">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Description</label>
-                            <textarea id="desc-input" rows="4"
-                                      class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-3xl px-5 py-4 outline-none resize-none text-base"
-                                      placeholder="Add details, notes, or context..."></textarea>
-                        </div>
-                        
-                        <button onclick="addTask()" 
-                                class="w-full bg-yellow-400 hover:bg-yellow-300 transition-colors text-zinc-950 font-semibold py-4 md:py-5 rounded-2xl flex items-center justify-center gap-3 text-base md:text-lg">
-                            <i class="fa-solid fa-check"></i>
-                            Create Task
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="mt-16 text-center text-zinc-500 text-sm">
-            <p class="flex items-center justify-center gap-2">
-                <i class="fa-solid fa-lock"></i>
-                All tasks are stored in your browser's local storage only
-            </p>
-            <p onclick="clearAllData()" 
-               class="cursor-pointer hover:text-red-400 transition-colors mt-4 text-xs">
-                Clear all data
-            </p>
-        </div>
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-yellow-400 tracking-tight">Loraine's Tasks</h1>
+        <p class="text-zinc-400 mt-1">Stay organized • <span id="task-count" class="font-medium">0 tasks</span></p>
+      </div>
+      <div class="w-10 h-10 bg-yellow-400 text-zinc-950 rounded-2xl flex items-center justify-center font-semibold text-xl shadow-inner">
+        LC
+      </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-zinc-900 rounded-3xl w-full max-w-lg mx-auto p-6 md:p-8">
-            <h3 class="text-2xl font-semibold mb-6">Edit Task</h3>
-            <input id="edit-id" type="hidden">
-            
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
-                    <input id="edit-title" type="text" 
-                           class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-2xl px-5 py-4 outline-none text-base">
-                </div>
-                <div>
-                    <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Description</label>
-                    <textarea id="edit-desc" rows="4"
-                              class="w-full bg-zinc-950 border border-zinc-700 focus:border-yellow-400 rounded-3xl px-5 py-4 outline-none resize-none text-base"></textarea>
-                </div>
-            </div>
-            
-            <div class="flex gap-3 mt-8">
-                <button onclick="closeEditModal()" 
-                        class="flex-1 py-4 border border-zinc-700 hover:bg-zinc-800 rounded-2xl transition-colors text-base font-medium">
-                    Cancel
-                </button>
-                <button onclick="saveEdit()" 
-                        class="flex-1 py-4 bg-yellow-400 text-zinc-950 font-semibold rounded-2xl hover:bg-yellow-300 transition-colors text-base">
-                    Save Changes
-                </button>
-            </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Main Task List -->
+      <div class="lg:col-span-8 card rounded-3xl overflow-hidden">
+        
+        <div class="px-6 py-5 border-b border-zinc-700 flex items-center justify-between">
+          <h2 class="font-semibold text-xl">My Tasks</h2>
+          <span id="shown-count" class="text-xs font-mono text-zinc-500">0 shown</span>
         </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-zinc-700 bg-zinc-900">
+          <button onclick="setFilter('all')" id="tab-all" 
+                  class="tab-button tab-active px-6 py-4 text-sm font-medium flex-1 lg:flex-none">All</button>
+          <button onclick="setFilter('notstarted')" id="tab-notstarted" 
+                  class="tab-button px-6 py-4 text-sm font-medium text-zinc-400 hover:text-white flex-1 lg:flex-none">Not Started</button>
+          <button onclick="setFilter('inprogress')" id="tab-inprogress" 
+                  class="tab-button px-6 py-4 text-sm font-medium text-zinc-400 hover:text-white flex-1 lg:flex-none">In Progress</button>
+          <button onclick="setFilter('completed')" id="tab-completed" 
+                  class="tab-button px-6 py-4 text-sm font-medium text-zinc-400 hover:text-white flex-1 lg:flex-none">Completed</button>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-zinc-700">
+                <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-widest text-zinc-500">TASK</th>
+                <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-widest text-zinc-500">DESCRIPTION</th>
+                <th class="px-6 py-4 text-left text-xs font-medium uppercase tracking-widest text-zinc-500">STATUS</th>
+                <th class="px-6 py-4 w-28"></th>
+              </tr>
+            </thead>
+            <tbody id="tasks-body" class="text-sm"></tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="hidden py-20 text-center text-zinc-500">
+          <i class="fa-solid fa-clipboard-list text-5xl mb-4 opacity-50"></i><br>
+          No tasks yet.<br>Create one on the right.
+        </div>
+      </div>
+
+      <!-- New Task Sidebar -->
+      <div class="lg:col-span-4 card rounded-3xl p-6 sticky top-6">
+        <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+          <i class="fa-solid fa-plus text-yellow-400"></i>
+          New Task
+        </h3>
+        
+        <div class="space-y-5">
+          <div>
+            <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
+            <input id="title-input" type="text" 
+                   class="input w-full px-5 py-4 rounded-2xl text-base"
+                   placeholder="What needs to be done?">
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Description</label>
+            <textarea id="desc-input" rows="5"
+                      class="input w-full px-5 py-4 rounded-3xl resize-none text-base"
+                      placeholder="Add details, notes, or context..."></textarea>
+          </div>
+
+          <button onclick="addTask()" 
+                  class="w-full mt-4 bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-semibold py-4 rounded-2xl transition-all text-base">
+            Create Task
+          </button>
+        </div>
+      </div>
     </div>
 
-    <script>
-        let tasks = [];
-        let currentFilter = 'all';
+    <!-- Footer -->
+    <div class="mt-16 text-center text-zinc-500 text-sm">
+      <p class="flex items-center justify-center gap-2">
+        <i class="fa-solid fa-lock"></i>
+        All tasks are stored in your browser's local storage only
+      </p>
+      <p onclick="clearAllData()" 
+         class="cursor-pointer hover:text-red-400 transition-colors mt-4 text-xs">
+        Clear all data
+      </p>
+    </div>
+  </div>
 
-        function saveToLocalStorage() {
-            localStorage.setItem('loraine_tasks', JSON.stringify(tasks));
-        }
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div class="card rounded-3xl w-full max-w-lg p-8">
+      <h3 class="text-2xl font-semibold mb-6">Edit Task</h3>
+      <input id="edit-id" type="hidden">
+      
+      <div class="space-y-5">
+        <div>
+          <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Task Title</label>
+          <input id="edit-title" type="text" 
+                 class="input w-full px-5 py-4 rounded-2xl text-base">
+        </div>
+        <div>
+          <label class="block text-xs uppercase tracking-widest text-zinc-500 mb-2">Description</label>
+          <textarea id="edit-desc" rows="4"
+                    class="input w-full px-5 py-4 rounded-3xl resize-none text-base"></textarea>
+        </div>
+      </div>
+      
+      <div class="flex gap-3 mt-8">
+        <button onclick="closeEditModal()" 
+                class="flex-1 py-4 border border-zinc-700 hover:bg-zinc-800 rounded-2xl transition-colors">
+          Cancel
+        </button>
+        <button onclick="saveEdit()" 
+                class="flex-1 py-4 bg-yellow-400 text-zinc-950 font-semibold rounded-2xl hover:bg-yellow-300">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
 
-        function loadFromLocalStorage() {
-            const saved = localStorage.getItem('loraine_tasks');
-            if (saved) tasks = JSON.parse(saved);
-        }
+  <script>
+    let tasks = [];
+    let currentFilter = 'all';
 
-        function getStatusClass(status) {
-            if (status === 'Completed') return 'completed';
-            if (status === 'In Progress') return 'in-progress';
-            return 'not-started';
-        }
+    function saveToLocalStorage() {
+      localStorage.setItem('loraine_tasks', JSON.stringify(tasks));
+    }
 
-        function renderTasks() {
-            const tbody = document.getElementById('tasks-body');
-            tbody.innerHTML = '';
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('loraine_tasks');
+      if (saved) tasks = JSON.parse(saved);
+    }
 
-            let filtered = tasks;
-            if (currentFilter === 'notstarted') filtered = tasks.filter(t => t.status === 'Not Started');
-            if (currentFilter === 'inprogress') filtered = tasks.filter(t => t.status === 'In Progress');
-            if (currentFilter === 'completed') filtered = tasks.filter(t => t.status === 'Completed');
+    function renderTasks() {
+      const tbody = document.getElementById('tasks-body');
+      tbody.innerHTML = '';
 
-            document.getElementById('empty-state').classList.toggle('hidden', filtered.length !== 0);
+      let filtered = tasks;
+      if (currentFilter === 'notstarted') filtered = tasks.filter(t => t.status === 'Not Started');
+      if (currentFilter === 'inprogress') filtered = tasks.filter(t => t.status === 'In Progress');
+      if (currentFilter === 'completed') filtered = tasks.filter(t => t.status === 'Completed');
 
-            filtered.forEach(task => {
-                const row = document.createElement('tr');
-                row.className = "group";
-                row.innerHTML = `
-                    <td class="py-6 px-6 md:px-8 font-medium text-base">${task.title}</td>
-                    <td class="py-6 px-6 text-zinc-400 text-base">
-                        ${task.description ? task.description : '<span class="text-zinc-500 italic">No description</span>'}
-                    </td>
-                    <td class="py-6 px-6">
-                        <select onchange="updateStatus('${task.id}', this.value)" 
-                                class="status-select ${getStatusClass(task.status)} bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-2 text-sm cursor-pointer focus:outline-none focus:border-yellow-400">
-                            <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''} style="color:#a1a1aa">Not Started</option>
-                            <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''} style="color:#fbbf24">In Progress</option>
-                            <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''} style="color:#34d399">Completed</option>
-                        </select>
-                    </td>
-                    <td class="py-6 px-4">
-                        <div class="flex items-center gap-3">
-                            <button onclick="editTask('${task.id}')" 
-                                    class="text-blue-400 hover:text-blue-500 p-2 transition-all">
-                                <i class="fa-solid fa-pen fa-lg"></i>
-                            </button>
-                            <button onclick="deleteTask('${task.id}')" 
-                                    class="text-red-400 hover:text-red-500 p-2 transition-all">
-                                <i class="fa-solid fa-trash fa-lg"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+      document.getElementById('task-count').textContent = `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`;
+      document.getElementById('shown-count').textContent = `${filtered.length} shown`;
 
-            document.getElementById('task-count').textContent = `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`;
-        }
+      document.getElementById('empty-state').classList.toggle('hidden', filtered.length !== 0);
 
-        function addTask() {
-            const title = document.getElementById('title-input').value.trim();
-            if (!title) return;
+      filtered.forEach(task => {
+        const row = document.createElement('tr');
+        row.className = "border-t border-zinc-700 hover:bg-zinc-800 transition-colors";
+        row.innerHTML = `
+          <td class="px-6 py-5 font-medium">${task.title}</td>
+          <td class="px-6 py-5 text-zinc-400">
+            ${task.description ? task.description : '<span class="italic opacity-60">No description</span>'}
+          </td>
+          <td class="px-6 py-5">
+            <select onchange="updateStatus('${task.id}', this.value)" 
+                    class="status-select w-full px-4 py-2 text-sm cursor-pointer focus:outline-none focus:border-yellow-400">
+              <option value="Not Started" ${task.status === 'Not Started' ? 'selected' : ''} class="status-not-started">Not Started</option>
+              <option value="In Progress" ${task.status === 'In Progress' ? 'selected' : ''} class="status-in-progress">In Progress</option>
+              <option value="Completed" ${task.status === 'Completed' ? 'selected' : ''} class="status-completed">Completed</option>
+            </select>
+          </td>
+          <td class="px-6 py-5">
+            <div class="flex items-center gap-4">
+              <button onclick="editTask('${task.id}')" class="text-blue-400 hover:text-blue-500">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="deleteTask('${task.id}')" class="text-red-400 hover:text-red-500">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
 
-            tasks.unshift({
-                id: 'task-' + Date.now(),
-                title: title,
-                description: document.getElementById('desc-input').value.trim(),
-                status: 'Not Started',
-                createdAt: new Date().toISOString()
-            });
+    function addTask() {
+      const title = document.getElementById('title-input').value.trim();
+      if (!title) return;
 
-            saveToLocalStorage();
-            renderTasks();
+      tasks.unshift({
+        id: 'task-' + Date.now(),
+        title: title,
+        description: document.getElementById('desc-input').value.trim(),
+        status: 'Not Started'
+      });
 
-            document.getElementById('title-input').value = '';
-            document.getElementById('desc-input').value = '';
-        }
+      saveToLocalStorage();
+      renderTasks();
 
-        function updateStatus(id, newStatus) {
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.status = newStatus;
-                saveToLocalStorage();
-                renderTasks();
-            }
-        }
+      document.getElementById('title-input').value = '';
+      document.getElementById('desc-input').value = '';
+    }
 
-        function editTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
+    function updateStatus(id, newStatus) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.status = newStatus;
+        saveToLocalStorage();
+        renderTasks();
+      }
+    }
 
-            document.getElementById('edit-id').value = task.id;
-            document.getElementById('edit-title').value = task.title;
-            document.getElementById('edit-desc').value = task.description || '';
+    function editTask(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
 
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
+      document.getElementById('edit-id').value = task.id;
+      document.getElementById('edit-title').value = task.title;
+      document.getElementById('edit-desc').value = task.description || '';
 
-        function saveEdit() {
-            const id = document.getElementById('edit-id').value;
-            const title = document.getElementById('edit-title').value.trim();
-            const desc = document.getElementById('edit-desc').value.trim();
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
 
-            if (!title) return;
+    function saveEdit() {
+      const id = document.getElementById('edit-id').value;
+      const title = document.getElementById('edit-title').value.trim();
+      const desc = document.getElementById('edit-desc').value.trim();
 
-            const task = tasks.find(t => t.id === id);
-            if (task) {
-                task.title = title;
-                task.description = desc;
-                saveToLocalStorage();
-                renderTasks();
-            }
-            closeEditModal();
-        }
+      if (!title) return;
 
-        function closeEditModal() {
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.title = title;
+        task.description = desc;
+        saveToLocalStorage();
+        renderTasks();
+      }
+      closeEditModal();
+    }
 
-        function deleteTask(id) {
-            if (confirm("Delete this task?")) {
-                tasks = tasks.filter(t => t.id !== id);
-                saveToLocalStorage();
-                renderTasks();
-            }
-        }
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
 
-        function filterTasks(filter) {
-            currentFilter = filter;
-            
-            document.querySelectorAll('button[id^="filter-"]').forEach(btn => {
-                if (btn.id === `filter-${filter === 'all' ? 'all' : filter === 'notstarted' ? 'notstarted' : filter === 'inprogress' ? 'progress' : 'completed'}`) {
-                    btn.classList.add('bg-zinc-800', 'shadow-sm');
-                } else {
-                    btn.classList.remove('bg-zinc-800', 'shadow-sm');
-                }
-            });
-            
-            renderTasks();
-        }
+    function deleteTask(id) {
+      if (confirm("Delete this task?")) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveToLocalStorage();
+        renderTasks();
+      }
+    }
 
-        function clearAllData() {
-            if (confirm("Clear ALL tasks? This cannot be undone.")) {
-                tasks = [];
-                localStorage.removeItem('loraine_tasks');
-                renderTasks();
-            }
-        }
+    function setFilter(filter) {
+      currentFilter = filter;
+      
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('tab-active', 
+          (filter === 'all' && btn.id === 'tab-all') ||
+          (filter === 'notstarted' && btn.id === 'tab-notstarted') ||
+          (filter === 'inprogress' && btn.id === 'tab-inprogress') ||
+          (filter === 'completed' && btn.id === 'tab-completed')
+        );
+      });
+      
+      renderTasks();
+    }
 
-        // Initialize
-        window.onload = () => {
-            loadFromLocalStorage();
-            renderTasks();
+    function clearAllData() {
+      if (confirm("Clear ALL tasks? This cannot be undone.")) {
+        tasks = [];
+        localStorage.removeItem('loraine_tasks');
+        renderTasks();
+      }
+    }
 
-            document.getElementById('title-input').addEventListener('keypress', e => {
-                if (e.key === 'Enter') addTask();
-            });
-        };
-    </script>
+    // Initialize
+    window.onload = () => {
+      loadFromLocalStorage();
+      renderTasks();
+
+      document.getElementById('title-input').addEventListener('keypress', e => {
+        if (e.key === 'Enter') addTask();
+      });
+    };
+  </script>
 </body>
 </html>
