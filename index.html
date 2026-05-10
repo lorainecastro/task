@@ -76,7 +76,18 @@
         
         <div class="px-6 py-5 border-b border-zinc-700 flex items-center justify-between">
           <h2 class="font-semibold text-xl">My Tasks</h2>
-          <span id="shown-count" class="text-xs font-mono text-zinc-500">0 shown</span>
+          
+          <div class="flex items-center gap-3">
+            <span id="shown-count" class="text-xs font-mono text-zinc-500">0 shown</span>
+            
+            <!-- New Clear Completed Button -->
+            <button id="clear-completed-btn"
+                    onclick="clearCompletedTasks()"
+                    class="hidden items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-red-900/30 hover:text-red-400 text-zinc-400 rounded-2xl text-sm font-medium transition-all">
+              <i class="fa-solid fa-arrow-rotate-left"></i>
+              Clear Completed
+            </button>
+          </div>
         </div>
 
         <!-- Tabs -->
@@ -207,6 +218,21 @@
       return '';
     }
 
+    function hasCompletedTasks() {
+      return tasks.some(t => t.status === 'Completed');
+    }
+
+    function updateClearButton() {
+      const btn = document.getElementById('clear-completed-btn');
+      if (hasCompletedTasks()) {
+        btn.classList.remove('hidden');
+        btn.classList.add('flex');
+      } else {
+        btn.classList.add('hidden');
+        btn.classList.remove('flex');
+      }
+    }
+
     function renderTasks() {
       const tbody = document.getElementById('tasks-body');
       tbody.innerHTML = '';
@@ -250,6 +276,8 @@
         `;
         tbody.appendChild(row);
       });
+
+      updateClearButton(); // Update button visibility
     }
 
     function addTask() {
@@ -274,6 +302,19 @@
       const task = tasks.find(t => t.id === id);
       if (task) {
         task.status = newStatus;
+        saveToLocalStorage();
+        renderTasks();
+      }
+    }
+
+    // New function: Clear Completed
+    function clearCompletedTasks() {
+      if (confirm("Reset all completed tasks to 'Not Started'?")) {
+        tasks.forEach(task => {
+          if (task.status === 'Completed') {
+            task.status = 'Not Started';
+          }
+        });
         saveToLocalStorage();
         renderTasks();
       }
