@@ -188,11 +188,11 @@
     let currentFilter = 'all';
 
     function saveToLocalStorage() {
-      localStorage.setItem('loraine_tasks', JSON.stringify(tasks));
+      localStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
     function loadFromLocalStorage() {
-      const saved = localStorage.getItem('loraine_tasks');
+      const saved = localStorage.getItem('tasks');
       if (saved) tasks = JSON.parse(saved);
     }
 
@@ -365,7 +365,7 @@
     function clearAllData() {
       if (confirm("Clear ALL tasks? This cannot be undone.")) {
         tasks = [];
-        localStorage.removeItem('loraine_tasks');
+        localStorage.removeItem('tasks');
         renderTasks();
       }
     }
